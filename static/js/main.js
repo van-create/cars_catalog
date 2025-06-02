@@ -1,0 +1,220 @@
+// Загрузка списка автомобилей
+async function loadCars(filters = {}) {
+    try {
+        const queryParams = new URLSearchParams(filters).toString();
+        const response = await fetch(`/api/cars?${queryParams}`);
+        const cars = await response.json();
+        
+        const carsList = document.getElementById('carsList');
+        carsList.innerHTML = '';
+
+        cars.forEach(car => {
+            const carCard = createCarCard(car);
+            carsList.appendChild(carCard);
+        });
+    } catch (error) {
+        console.error('Ошибка при загрузке автомобилей:', error);
+        alert('Произошла ошибка при загрузке автомобилей');
+    }
+}
+
+// Создание карточки автомобиля
+function createCarCard(car) {
+    const col = document.createElement('div');
+    col.className = 'col-md-4';
+    
+    const carId = car.ID || car.id;
+    
+    col.innerHTML = `
+        <div class="card car-card">
+            <div class="card-body">
+                <h5 class="card-title">${car.brand} ${car.model}</h5>
+                <p class="car-price">${formatPrice(car.price)} ₽</p>
+                <div class="car-specs">
+                    <p><i class="bi bi-calendar"></i> ${car.year} год</p>
+                    <p><i class="bi bi-speedometer2"></i> ${formatMileage(car.mileage)} км</p>
+                    <p><i class="bi bi-gear"></i> ${formatTransmission(car.transmission)}</p>
+                    <p><i class="bi bi-fuel-pump"></i> ${formatFuelType(car.fuel_type)}</p>
+                </div>
+                <div class="mt-3">
+                    <button class="btn btn-sm btn-outline-primary me-2" onclick="editCar('${carId}')">
+                        Редактировать
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger" onclick="deleteCar('${carId}')">
+                        Удалить
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    return col;
+}
+
+// Добавление нового автомобиля
+async function addCar() {
+    const form = document.getElementById('addCarForm');
+    const formData = new FormData(form);
+    const carData = Object.fromEntries(formData.entries());
+    // Преобразуем числовые поля к числам
+    carData.year = Number(carData.year);
+    carData.price = Number(carData.price);
+    carData.mileage = Number(carData.mileage);
+    carData.engine_size = Number(carData.engine_size);
+
+    try {
+        const response = await fetch('/api/cars', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(carData),
+        });
+
+        if (response.ok) {
+            const modal = bootstrap.Modal.getInstance(document.getElementById('addCarModal'));
+            modal.hide();
+            form.reset();
+            loadCars();
+        } else {
+            throw new Error('Ошибка при добавлении автомобиля');
+        }
+    } catch (error) {
+        console.error('Ошибка:', error);
+        alert('Произошла ошибка при добавлении автомобиля');
+    }
+}
+
+// Удаление автомобиля
+async function deleteCar(id) {
+    if (!confirm('Вы уверены, что хотите удалить этот автомобиль?')) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/cars/${id}`, {
+            method: 'DELETE',
+        });
+
+        if (response.ok) {
+            loadCars();
+        } else {
+            throw new Error('Ошибка при удалении автомобиля');
+        }
+    } catch (error) {
+        console.error('Ошибка:', error);
+        alert('Произошла ошибка при удалении автомобиля');
+    }
+}
+
+// Форматирование цены
+function formatPrice(price) {
+    return new Intl.NumberFormat('ru-RU').format(price);
+}
+
+// Форматирование пробега
+function formatMileage(mileage) {
+    return new Intl.NumberFormat('ru-RU').format(mileage);
+}
+
+// Форматирование типа трансмиссии
+function formatTransmission(transmission) {
+    const types = {
+        'manual': 'Механика',
+        'automatic': 'Автомат'
+    };
+    return types[transmission] || transmission;
+}
+
+// Форматирование типа топлива
+function formatFuelType(fuelType) {
+    const types = {
+        'petrol': 'Бензин',
+        'diesel': 'Дизель',
+        'electric': 'Электро'
+    };
+    return types[fuelType] || fuelType;
+}
+
+// Обработка формы фильтров
+document.getElementById('filterForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const filters = Object.fromEntries(formData.entries());
+    loadCars(filters);
+});
+
+// Загрузка автомобилей при загрузке страницы
+document.addEventListener('DOMContentLoaded', () => {
+    loadCars();
+});
+
+// Редактирование автомобиля
+async function editCar(id) {
+    try {
+        const response = await fetch(`/api/cars/${id}`);
+        const car = await response.json();
+        
+        // Заполняем форму данными автомобиля
+        const form = document.getElementById('editCarForm');
+        if (!form) {
+            return;
+        }
+        
+        form.brand.value = car.brand;
+        form.model.value = car.model;
+        form.year.value = car.year;
+        form.price.value = car.price;
+        form.mileage.value = car.mileage;
+        form.color.value = car.color;
+        form.engine_size.value = car.engine_size;
+        form.transmission.value = car.transmission;
+        form.fuel_type.value = car.fuel_type;
+        form.description.value = car.description;
+        
+        // Сохраняем ID автомобиля в форме
+        form.dataset.carId = car.ID;
+        
+        // Показываем модальное окно
+        const modal = new bootstrap.Modal(document.getElementById('editCarModal'));
+        modal.show();
+    } catch (error) {
+        console.error('Ошибка при загрузке данных автомобиля:', error);
+        alert('Произошла ошибка при загрузке данных автомобиля');
+    }
+}
+
+// Сохранение изменений автомобиля
+async function saveCarChanges() {
+    const form = document.getElementById('editCarForm');
+    const carId = form.dataset.carId;
+    const formData = new FormData(form);
+    const carData = Object.fromEntries(formData.entries());
+    
+    // Преобразуем числовые поля к числам
+    carData.year = Number(carData.year);
+    carData.price = Number(carData.price);
+    carData.mileage = Number(carData.mileage);
+    carData.engine_size = Number(carData.engine_size);
+
+    try {
+        const response = await fetch(`/api/cars/${carId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(carData),
+        });
+
+        if (response.ok) {
+            const modal = bootstrap.Modal.getInstance(document.getElementById('editCarModal'));
+            modal.hide();
+            loadCars();
+        } else {
+            throw new Error('Ошибка при обновлении автомобиля');
+        }
+    } catch (error) {
+        console.error('Ошибка:', error);
+        alert('Произошла ошибка при обновлении автомобиля');
+    }
+} 

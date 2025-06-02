@@ -1,0 +1,28 @@
+.car-card {
+    transition: transform 0.2s;
+}
+
+.car-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.car-card .card-img-top {
+    height: 200px;
+    object-fit: cover;
+}
+
+.car-price {
+    font-size: 1.25rem;
+    font-weight: bold;
+    color: #28a745;
+}
+
+.car-specs {
+    font-size: 0.9rem;
+    color: #6c757d;
+}
+
+.car-specs i {
+    margin-right: 5px;
+} 

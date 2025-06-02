@@ -1,0 +1,33 @@
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Системные файлы
+.DS_Store
+Thumbs.db
+
+# Временные файлы
+tmp/
+temp/
+*.log
+
+# Конфиденциальные данные
+.env
+*.pem
+*.key
+
+# Бинарные файлы
+*.exe
+*.dll
+*.so
+*.dylib
+cars_catalog
+
+# Go специфичные файлы
+/vendor/
+/bin/
+/pkg/
+*.test
+*.out 
