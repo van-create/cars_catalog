@@ -117,33 +117,6 @@ cars_catalog/
 - `transmission` - Тип трансмиссии (manual/automatic)
 - `fuel_type` - Тип топлива (petrol/diesel/electric)
 
-## Разработка
-
-### Добавление новых функций
-
-1. Создайте новую ветку:
-```bash
-git checkout -b feature/new-feature
-```
-
-2. Внесите изменения и закоммитьте их:
-```bash
-git add .
-git commit -m "Add new feature"
-```
-
-3. Отправьте изменения в репозиторий:
-```bash
-git push origin feature/new-feature
-```
-
-### Тестирование
-
-Для запуска тестов:
-```bash
-go test ./...
-```
-
 ## Лицензия
 
 MIT License
