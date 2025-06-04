@@ -4,6 +4,7 @@ import (
 	"cars_catalog/api"
 	"cars_catalog/config"
 	"cars_catalog/handlers"
+	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -12,6 +13,13 @@ import (
 func main() {
 	// Инициализация базы данных
 	config.InitDB()
+
+	// Импорт автомобилей при запуске
+	if err := api.ImportVehiclesToDB(); err != nil {
+		log.Printf("Error importing vehicles: %v", err)
+	} else {
+		log.Println("Successfully imported vehicles")
+	}
 
 	// Создание роутера
 	r := gin.Default()
