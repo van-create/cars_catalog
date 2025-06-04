@@ -11,11 +11,9 @@ import (
 )
 
 func main() {
-	// Инициализация базы данных
 	config.InitDB()
 
-	// Импорт автомобилей при запуске
-	if true { // Set to true or false to import or not
+	if true {
 		if err := api.ImportVehiclesToDB(); err != nil {
 			log.Printf("Error importing vehicles: %v", err)
 		} else {
@@ -23,40 +21,31 @@ func main() {
 		}
 	}
 
-	// Создание роутера
 	r := gin.Default()
 
-	// Обслуживание статических файлов
 	r.Static("/static", "./static")
 	r.LoadHTMLGlob("static/*.html")
 
-	// Главная страница
 	r.GET("/", func(c *gin.Context) {
 		c.File("static/index.html")
 	})
 
-	// Маршруты API
 	apiGroup := r.Group("/api")
 	{
-		cars := apiGroup.Group("/cars")
-		{
-			cars.GET("", handlers.GetCars)
-			cars.GET("/:id", handlers.GetCar)
-			cars.POST("", handlers.CreateCar)
-			cars.PUT("/:id", handlers.UpdateCar)
-			cars.DELETE("/:id", handlers.DeleteCar)
-		}
-
-		// Новый маршрут для импорта автомобилей
-		apiGroup.POST("/import", func(c *gin.Context) {
-			if err := api.ImportVehiclesToDB(); err != nil {
-				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-				return
-			}
-			c.JSON(http.StatusOK, gin.H{"message": "Import completed successfully"})
-		})
+		apiGroup.GET("/cars", handlers.GetCars)
+		apiGroup.GET("/cars/:id", handlers.GetCar)
+		apiGroup.POST("/cars", handlers.CreateCar)
+		apiGroup.PUT("/cars/:id", handlers.UpdateCar)
+		apiGroup.DELETE("/cars/:id", handlers.DeleteCar)
 	}
 
-	// Запуск сервера
+	apiGroup.POST("/import", func(c *gin.Context) {
+		if err := api.ImportVehiclesToDB(); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{"message": "Vehicles imported successfully"})
+	})
+
 	r.Run(":8080")
 }

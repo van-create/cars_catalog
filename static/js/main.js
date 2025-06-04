@@ -1,4 +1,3 @@
-// Загрузка списка автомобилей
 async function loadCars(filters = {}) {
     try {
         const queryParams = new URLSearchParams(filters).toString();
@@ -18,7 +17,6 @@ async function loadCars(filters = {}) {
     }
 }
 
-// Создание карточки автомобиля
 function createCarCard(car) {
     const col = document.createElement('div');
     col.className = 'col-md-4';
@@ -51,12 +49,10 @@ function createCarCard(car) {
     return col;
 }
 
-// Добавление нового автомобиля
 async function addCar() {
     const form = document.getElementById('addCarForm');
     const formData = new FormData(form);
     const carData = Object.fromEntries(formData.entries());
-    // Преобразуем числовые поля к числам
     carData.year = Number(carData.year);
     carData.price = Number(carData.price);
     carData.mileage = Number(carData.mileage);
@@ -85,7 +81,6 @@ async function addCar() {
     }
 }
 
-// Удаление автомобиля
 async function deleteCar(id) {
     if (!confirm('Вы уверены, что хотите удалить этот автомобиль?')) {
         return;
@@ -107,17 +102,14 @@ async function deleteCar(id) {
     }
 }
 
-// Форматирование цены
 function formatPrice(price) {
     return new Intl.NumberFormat('ru-RU').format(price);
 }
 
-// Форматирование пробега
 function formatMileage(mileage) {
     return new Intl.NumberFormat('ru-RU').format(mileage);
 }
 
-// Форматирование типа трансмиссии
 function formatTransmission(transmission) {
     const types = {
         'manual': 'Механика',
@@ -126,7 +118,6 @@ function formatTransmission(transmission) {
     return types[transmission] || transmission;
 }
 
-// Форматирование типа топлива
 function formatFuelType(fuelType) {
     const types = {
         'petrol': 'Бензин',
@@ -136,7 +127,6 @@ function formatFuelType(fuelType) {
     return types[fuelType] || fuelType;
 }
 
-// Обработка формы фильтров
 document.getElementById('filterForm').addEventListener('submit', (e) => {
     e.preventDefault();
     const formData = new FormData(e.target);
@@ -144,18 +134,15 @@ document.getElementById('filterForm').addEventListener('submit', (e) => {
     loadCars(filters);
 });
 
-// Загрузка автомобилей при загрузке страницы
 document.addEventListener('DOMContentLoaded', () => {
     loadCars();
 });
 
-// Редактирование автомобиля
 async function editCar(id) {
     try {
         const response = await fetch(`/api/cars/${id}`);
         const car = await response.json();
         
-        // Заполняем форму данными автомобиля
         const form = document.getElementById('editCarForm');
         if (!form) {
             return;
@@ -172,10 +159,8 @@ async function editCar(id) {
         form.fuel_type.value = car.fuel_type;
         form.description.value = car.description;
         
-        // Сохраняем ID автомобиля в форме
         form.dataset.carId = car.ID;
         
-        // Показываем модальное окно
         const modal = new bootstrap.Modal(document.getElementById('editCarModal'));
         modal.show();
     } catch (error) {
@@ -184,14 +169,12 @@ async function editCar(id) {
     }
 }
 
-// Сохранение изменений автомобиля
 async function saveCarChanges() {
     const form = document.getElementById('editCarForm');
     const carId = form.dataset.carId;
     const formData = new FormData(form);
     const carData = Object.fromEntries(formData.entries());
     
-    // Преобразуем числовые поля к числам
     carData.year = Number(carData.year);
     carData.price = Number(carData.price);
     carData.mileage = Number(carData.mileage);
@@ -219,13 +202,11 @@ async function saveCarChanges() {
     }
 }
 
-// Показать подробную информацию об автомобиле
 async function showCarDetails(id) {
     try {
         const response = await fetch(`/api/cars/${id}`);
         const car = await response.json();
         
-        // Заполняем модальное окно данными
         const modal = document.getElementById('carDetailsModal');
         modal.querySelector('.car-brand-model').textContent = `${car.brand} ${car.model}`;
         modal.querySelector('.car-price').textContent = `${formatPrice(car.price)} ₽`;
@@ -237,7 +218,6 @@ async function showCarDetails(id) {
         modal.querySelector('.car-engine-size').textContent = `${car.engine_size} л`;
         modal.querySelector('.car-description').textContent = car.description || 'Описание отсутствует';
         
-        // Показываем модальное окно
         const modalInstance = new bootstrap.Modal(modal);
         modalInstance.show();
     } catch (error) {
