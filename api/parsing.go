@@ -1,6 +1,8 @@
 package api
 
 import (
+	"cars_catalog/config"
+	"cars_catalog/models"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -121,7 +123,8 @@ func createRequest(BaseURL string, apiKey string, params url.Values) ([]byte, er
 	return body, nil
 }
 
-func getCompleteVehicles() {
+// ImportVehiclesToDB получает данные с внешнего API и сохраняет их в локальную БД
+func ImportVehiclesToDB() error {
 	// Загружаем переменные окружения из .env файла
 	if err := godotenv.Load(); err != nil {
 		log.Printf("Warning: .env file not found: %v\n", err)
@@ -130,7 +133,7 @@ func getCompleteVehicles() {
 	// Получаем API ключ из переменных окружения
 	apiKey := os.Getenv("API_KEY")
 	if apiKey == "" {
-		log.Fatal("API_KEY is not set in .env file")
+		return fmt.Errorf("API_KEY is not set in .env file")
 	}
 
 	// Настраиваем параметры запроса
@@ -140,30 +143,43 @@ func getCompleteVehicles() {
 	// Выполняем запрос к API
 	listings, err := fetchListings(apiKey, params)
 	if err != nil {
-		fmt.Printf("Error: %v\n", err)
-		return
+		return fmt.Errorf("error fetching listings: %v", err)
 	}
 
-	// Заполняем VINData для каждого автомобиля
-	for i := range listings.Data {
-		vinData, err := fetchVIN(apiKey, listings.Data[i].VIN)
+	// Получаем VIN данные и сохраняем каждый автомобиль в БД
+	for _, vehicle := range listings.Data {
+		// Получаем дополнительные данные по VIN
+		vinData, err := fetchVIN(apiKey, vehicle.VIN)
 		if err != nil {
-			fmt.Printf("Error getting VIN data for %s: %v\n", listings.Data[i].VIN, err)
+			log.Printf("Warning: Error getting VIN data for %s: %v\n", vehicle.VIN, err)
 			continue
 		}
-		listings.Data[i].VINData = *vinData // Разыменовываем указатель
-		// Делаем небольшую паузу между запросами чтобы не перегружать API
+
+		// Преобразуем VehicleListing в models.Car
+		car := models.Car{
+			Brand:        vehicle.Make,
+			CarModel:     vehicle.Model,
+			Year:         vehicle.Year,
+			Price:        vehicle.Price,
+			Mileage:      vehicle.Mileage,
+			Color:        vehicle.Color,
+			EngineSize:   vinData.Engine.EngineSize,
+			Transmission: vinData.Transmission.TransmissionType,
+			FuelType:     vinData.Engine.FuelType,
+			Description:  fmt.Sprintf("VIN: %s", vehicle.VIN),
+		}
+
+		// Сохраняем в базу данных
+		if err := config.DB.Create(&car).Error; err != nil {
+			log.Printf("Warning: Failed to save car %s %s: %v\n", car.Brand, car.CarModel, err)
+			continue
+		}
+
+		log.Printf("Successfully imported: %s %s (%d)\n", car.Brand, car.CarModel, car.Year)
+
+		// Делаем паузу между запросами
 		time.Sleep(100 * time.Millisecond)
 	}
 
-	// Выводим результаты
-	fmt.Printf("Найдено %d объявлений:\n", listings.Count)
-	for _, vehicle := range listings.Data {
-		fmt.Printf("\nАвтомобиль: %s %s %d\n", vehicle.Make, vehicle.Model, vehicle.Year)
-		fmt.Printf("VIN: %s\n", vehicle.VIN)
-		fmt.Printf("Цена: $%.2f\n", vehicle.Price)
-		fmt.Printf("Пробег: %d миль\n", vehicle.Mileage)
-		fmt.Printf("Цвет: %s\n", vehicle.Color)
-		fmt.Printf("Трансмиссия: %s\n", vehicle.VINData.Transmission.TransmissionType)
-	}
+	return nil
 }

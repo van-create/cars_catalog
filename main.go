@@ -1,8 +1,10 @@
 package main
 
 import (
+	"cars_catalog/api"
 	"cars_catalog/config"
 	"cars_catalog/handlers"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
@@ -24,9 +26,9 @@ func main() {
 	})
 
 	// Маршруты API
-	api := r.Group("/api")
+	apiGroup := r.Group("/api")
 	{
-		cars := api.Group("/cars")
+		cars := apiGroup.Group("/cars")
 		{
 			cars.GET("", handlers.GetCars)
 			cars.GET("/:id", handlers.GetCar)
@@ -34,6 +36,15 @@ func main() {
 			cars.PUT("/:id", handlers.UpdateCar)
 			cars.DELETE("/:id", handlers.DeleteCar)
 		}
+
+		// Новый маршрут для импорта автомобилей
+		apiGroup.POST("/import", func(c *gin.Context) {
+			if err := api.ImportVehiclesToDB(); err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return
+			}
+			c.JSON(http.StatusOK, gin.H{"message": "Import completed successfully"})
+		})
 	}
 
 	// Запуск сервера
