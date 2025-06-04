@@ -56,6 +56,9 @@ DB_PORT=5432
 # Настройки сервера
 PORT=8080
 ENV=development
+
+# Настройка API
+API_KEY=your_api_key
 ```
 
 4. Создайте базу данных:
@@ -125,4 +128,4 @@ MIT License
 
 Елисеев Иван - [GitHub](https://github.com/van-create)
 Скляр Александр - [GitHub](https://github.com/your-username)
-Дыбнова Ирина - [GitHub](https://github.com/your-username)
+Дыбнова Ирина - [GitHub](https://github.com/CrazyCucumber1337)
