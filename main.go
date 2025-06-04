@@ -15,10 +15,12 @@ func main() {
 	config.InitDB()
 
 	// Импорт автомобилей при запуске
-	if err := api.ImportVehiclesToDB(); err != nil {
-		log.Printf("Error importing vehicles: %v", err)
-	} else {
-		log.Println("Successfully imported vehicles")
+	if true { // Set to true or false to import or not
+		if err := api.ImportVehiclesToDB(); err != nil {
+			log.Printf("Error importing vehicles: %v", err)
+		} else {
+			log.Println("Successfully imported vehicles")
+		}
 	}
 
 	// Создание роутера
