@@ -25,4 +25,36 @@
 
 .car-specs i {
     margin-right: 5px;
+}
+
+/* Стили для модального окна с подробной информацией */
+.car-details-section {
+    background-color: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 0.5rem;
+    height: 100%;
+}
+
+.car-details-section h6 {
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.car-details-section strong {
+    color: #495057;
+    margin-right: 0.5rem;
+}
+
+#carDetailsModal .modal-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+#carDetailsModal .car-price {
+    font-size: 1.5rem;
+}
+
+#carDetailsModal .car-description {
+    color: #6c757d;
+    line-height: 1.6;
 } 

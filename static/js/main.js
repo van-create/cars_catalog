@@ -26,7 +26,7 @@ function createCarCard(car) {
     const carId = car.ID || car.id;
     
     col.innerHTML = `
-        <div class="card car-card">
+        <div class="card car-card" style="cursor: pointer;" onclick="showCarDetails(${carId})">
             <div class="card-body">
                 <h5 class="card-title">${car.brand} ${car.model}</h5>
                 <p class="car-price">${formatPrice(car.price)} ₽</p>
@@ -37,10 +37,10 @@ function createCarCard(car) {
                     <p><i class="bi bi-fuel-pump"></i> ${formatFuelType(car.fuel_type)}</p>
                 </div>
                 <div class="mt-3">
-                    <button class="btn btn-sm btn-outline-primary me-2" onclick="editCar('${carId}')">
+                    <button class="btn btn-sm btn-outline-primary me-2" onclick="event.stopPropagation(); editCar('${carId}')">
                         Редактировать
                     </button>
-                    <button class="btn btn-sm btn-outline-danger" onclick="deleteCar('${carId}')">
+                    <button class="btn btn-sm btn-outline-danger" onclick="event.stopPropagation(); deleteCar('${carId}')">
                         Удалить
                     </button>
                 </div>
@@ -216,5 +216,32 @@ async function saveCarChanges() {
     } catch (error) {
         console.error('Ошибка:', error);
         alert('Произошла ошибка при обновлении автомобиля');
+    }
+}
+
+// Показать подробную информацию об автомобиле
+async function showCarDetails(id) {
+    try {
+        const response = await fetch(`/api/cars/${id}`);
+        const car = await response.json();
+        
+        // Заполняем модальное окно данными
+        const modal = document.getElementById('carDetailsModal');
+        modal.querySelector('.car-brand-model').textContent = `${car.brand} ${car.model}`;
+        modal.querySelector('.car-price').textContent = `${formatPrice(car.price)} ₽`;
+        modal.querySelector('.car-year').textContent = `${car.year} год`;
+        modal.querySelector('.car-mileage').textContent = `${formatMileage(car.mileage)} км`;
+        modal.querySelector('.car-transmission').textContent = formatTransmission(car.transmission);
+        modal.querySelector('.car-fuel-type').textContent = formatFuelType(car.fuel_type);
+        modal.querySelector('.car-color').textContent = car.color;
+        modal.querySelector('.car-engine-size').textContent = `${car.engine_size} л`;
+        modal.querySelector('.car-description').textContent = car.description || 'Описание отсутствует';
+        
+        // Показываем модальное окно
+        const modalInstance = new bootstrap.Modal(modal);
+        modalInstance.show();
+    } catch (error) {
+        console.error('Ошибка при загрузке данных автомобиля:', error);
+        alert('Произошла ошибка при загрузке данных автомобиля');
     }
 } 
