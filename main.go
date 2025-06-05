@@ -43,6 +43,8 @@ func main() {
 		apiGroup.POST("/cars", handlers.CreateCar)
 		apiGroup.PUT("/cars/:id", handlers.UpdateCar)
 		apiGroup.DELETE("/cars/:id", handlers.DeleteCar)
+		apiGroup.GET("/fuel-types", handlers.GetUniqueFuelTypes)
+		apiGroup.GET("/transmissions", handlers.GetUniqueTransmissions)
 	}
 
 	apiGroup.POST("/import", func(c *gin.Context) {
