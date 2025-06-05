@@ -132,3 +132,21 @@ func ClearDB(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "Database cleared successfully"})
 }
+
+func GetUniqueFuelTypes(c *gin.Context) {
+	var fuelTypes []string
+	if err := config.DB.Model(&models.Car{}).Distinct().Pluck("fuel_type", &fuelTypes).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, fuelTypes)
+}
+
+func GetUniqueTransmissions(c *gin.Context) {
+	var transmissions []string
+	if err := config.DB.Model(&models.Car{}).Distinct().Pluck("transmission", &transmissions).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, transmissions)
+}

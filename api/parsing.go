@@ -154,6 +154,17 @@ func ImportVehiclesToDB() error {
 			continue
 		}
 
+		// Проверяем и обрабатываем пустые значения
+		transmission := vinData.Transmission.TransmissionType
+		if transmission == "" {
+			transmission = "Не указано"
+		}
+
+		fuelType := vinData.Engine.FuelType
+		if fuelType == "" {
+			fuelType = "Не указано"
+		}
+
 		// Преобразуем VehicleListing в models.Car
 		car := models.Car{
 			Brand:        vehicle.Make,
@@ -163,8 +174,8 @@ func ImportVehiclesToDB() error {
 			Mileage:      vehicle.Mileage,
 			Color:        vehicle.Color,
 			EngineSize:   vinData.Engine.EngineSize,
-			Transmission: vinData.Transmission.TransmissionType,
-			FuelType:     vinData.Engine.FuelType,
+			Transmission: transmission,
+			FuelType:     fuelType,
 			Description:  fmt.Sprintf("VIN: %s", vehicle.VIN),
 		}
 
