@@ -124,3 +124,11 @@ func DeleteCar(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"message": "Car deleted successfully"})
 }
+
+func ClearDB(c *gin.Context) {
+	if err := config.DB.Exec("DELETE FROM cars").Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Database cleared successfully"})
+}

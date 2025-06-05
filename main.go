@@ -13,6 +13,12 @@ import (
 func main() {
 	config.InitDB()
 
+	// Очистка базы данных перед парсингом
+	if err := config.DB.Exec("DELETE FROM cars").Error; err != nil {
+		log.Fatalf("Failed to clear database: %v", err)
+	}
+	log.Println("Database cleared before parsing")
+
 	if true {
 		if err := api.ImportVehiclesToDB(); err != nil {
 			log.Printf("Error importing vehicles: %v", err)
@@ -46,6 +52,8 @@ func main() {
 		}
 		c.JSON(http.StatusOK, gin.H{"message": "Vehicles imported successfully"})
 	})
+
+	apiGroup.POST("/clear", handlers.ClearDB)
 
 	r.Run(":8080")
 }

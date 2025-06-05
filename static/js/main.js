@@ -27,7 +27,7 @@ function createCarCard(car) {
         <div class="card car-card" style="cursor: pointer;" onclick="showCarDetails(${carId})">
             <div class="card-body">
                 <h5 class="card-title">${car.brand} ${car.model}</h5>
-                <p class="car-price">${formatPrice(car.price)} ₽</p>
+                <p class="car-price">${formatPrice(car.price)}</p>
                 <div class="car-specs">
                     <p><i class="bi bi-calendar"></i> ${car.year} год</p>
                     <p><i class="bi bi-speedometer2"></i> ${formatMileage(car.mileage)} км</p>
@@ -103,7 +103,7 @@ async function deleteCar(id) {
 }
 
 function formatPrice(price) {
-    return new Intl.NumberFormat('ru-RU').format(price);
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(price);
 }
 
 function formatMileage(mileage) {
@@ -209,7 +209,7 @@ async function showCarDetails(id) {
         
         const modal = document.getElementById('carDetailsModal');
         modal.querySelector('.car-brand-model').textContent = `${car.brand} ${car.model}`;
-        modal.querySelector('.car-price').textContent = `${formatPrice(car.price)} ₽`;
+        modal.querySelector('.car-price').textContent = formatPrice(car.price);
         modal.querySelector('.car-year').textContent = `${car.year} год`;
         modal.querySelector('.car-mileage').textContent = `${formatMileage(car.mileage)} км`;
         modal.querySelector('.car-transmission').textContent = formatTransmission(car.transmission);
