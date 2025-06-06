@@ -20,7 +20,6 @@ const (
 	vinBaseURL = "https://auto.dev/api/vin"
 )
 
-// VehicleListing представляет структуру данных для одной записи автомобиля
 type VehicleListing struct {
 	ID      int     `json:"id"`
 	Make    string  `json:"make"`
@@ -32,7 +31,6 @@ type VehicleListing struct {
 	VIN     string  `json:"vin"`
 }
 
-// VinInfo представляет структуру данных для VIN-информации
 type VinInfo struct {
 	Engine struct {
 		EngineSize float64 `json:"size"`
@@ -43,13 +41,11 @@ type VinInfo struct {
 	} `json:"transmission"`
 }
 
-// ListingsResponse представляет структуру ответа API
 type ListingsResponse struct {
 	Count int              `json:"hitsCount"`
 	Data  []VehicleListing `json:"records"`
 }
 
-// fetchListings выполняет запрос к API auto.dev с указанными параметрами
 func fetchListings(apiKey string, params url.Values) (*ListingsResponse, error) {
 	body, err := createRequest(apiBaseURL, apiKey, params)
 	if err != nil {
@@ -80,23 +76,19 @@ func fetchVIN(apiKey string, vin string) (*VinInfo, error) {
 }
 
 func createRequest(BaseURL string, apiKey string, params url.Values) ([]byte, error) {
-	// Формируем URL с параметрами
 	u, err := url.Parse(BaseURL)
 	if err != nil {
 		return nil, fmt.Errorf("URL parsing error: %v", err)
 	}
 	u.RawQuery = params.Encode()
 
-	// Создаем HTTP-запрос
 	req, err := http.NewRequest("GET", u.String(), nil)
 	if err != nil {
 		return nil, fmt.Errorf("request creation error: %v", err)
 	}
 
-	// Добавляем API-ключ в заголовок Authorization
 	req.Header.Set("Authorization", "Bearer "+apiKey)
 
-	// Выполняем запрос
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
@@ -104,7 +96,6 @@ func createRequest(BaseURL string, apiKey string, params url.Values) ([]byte, er
 	}
 	defer resp.Body.Close()
 
-	// Проверяем статус ответа
 	if resp.StatusCode != http.StatusOK {
 		body, err := io.ReadAll(resp.Body)
 		if err != nil {
@@ -113,7 +104,6 @@ func createRequest(BaseURL string, apiKey string, params url.Values) ([]byte, er
 		return nil, fmt.Errorf("API error: status %d, body: %s", resp.StatusCode, string(body))
 	}
 
-	// Читаем и парсим тело ответа
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, fmt.Errorf("response read error: %v", err)
@@ -122,39 +112,31 @@ func createRequest(BaseURL string, apiKey string, params url.Values) ([]byte, er
 	return body, nil
 }
 
-// ImportVehiclesToDB получает данные с внешнего API и сохраняет их в локальную БД
 func ImportVehiclesToDB() error {
-	// Загружаем переменные окружения из .env файла
 	if err := godotenv.Load(); err != nil {
 		log.Printf("Warning: .env file not found: %v\n", err)
 	}
 
-	// Получаем API ключ из переменных окружения
 	apiKey := os.Getenv("API_KEY")
 	if apiKey == "" {
 		return fmt.Errorf("API_KEY is not set in .env file")
 	}
 
-	// Настраиваем параметры запроса
 	params := url.Values{}
-	params.Add("page", "22") // Номер страницы
+	params.Add("page", "22")
 
-	// Выполняем запрос к API
 	listings, err := fetchListings(apiKey, params)
 	if err != nil {
 		return fmt.Errorf("error fetching listings: %v", err)
 	}
 
-	// Получаем VIN данные и сохраняем каждый автомобиль в БД
 	for _, vehicle := range listings.Data {
-		// Получаем дополнительные данные по VIN
 		vinData, err := fetchVIN(apiKey, vehicle.VIN)
 		if err != nil {
 			log.Printf("Warning: Error getting VIN data for %s: %v\n", vehicle.VIN, err)
 			continue
 		}
 
-		// Проверяем и обрабатываем пустые значения
 		transmission := vinData.Transmission.TransmissionType
 		if transmission == "" {
 			transmission = "Не указано"
@@ -165,7 +147,6 @@ func ImportVehiclesToDB() error {
 			fuelType = "Не указано"
 		}
 
-		// Преобразуем VehicleListing в models.Car
 		car := models.Car{
 			Brand:        vehicle.Make,
 			CarModel:     vehicle.Model,
@@ -179,7 +160,6 @@ func ImportVehiclesToDB() error {
 			Description:  fmt.Sprintf("VIN: %s", vehicle.VIN),
 		}
 
-		// Сохраняем в базу данных
 		if err := config.DB.Create(&car).Error; err != nil {
 			log.Printf("Warning: Failed to save car %s %s: %v\n", car.Brand, car.CarModel, err)
 			continue
@@ -187,7 +167,6 @@ func ImportVehiclesToDB() error {
 
 		log.Printf("Successfully imported: %s %s (%d)\n", car.Brand, car.CarModel, car.Year)
 
-		// Делаем паузу между запросами
 		time.Sleep(100 * time.Millisecond)
 	}
 
