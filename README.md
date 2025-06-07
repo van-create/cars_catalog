@@ -66,17 +66,19 @@ cars_catalog/
 ├── handlers/           # HTTP обработчики
 │   └── car_handler.go  # Обработчики для работы с автомобилями
 ├── models/             # Модели данных
-│   └── car.go         # Модель автомобиля
-├── static/            # Статические файлы
-│   ├── css/          # Стили
-│   ├── js/           # JavaScript файлы
-│   └── index.html    # Главная страница
-├── .env              # Конфигурация окружения
-├── .gitignore       # Исключения для Git
-├── go.mod           # Зависимости Go
-├── go.sum           # Контрольные суммы зависимостей
-├── main.go          # Точка входа приложения
-└── README.md        # Документация
+│   └── car.go          # Модель автомобиля
+├── static/             # Статические файлы
+│   ├── css/            # Стили
+│   │   └── style.css   # Визуальная обработка
+│   ├── js/             # JavaScript файлы
+│   │   └── main.js     # Функционал главной страницы
+│   └── index.html      # Главная страница
+├── .env                # Конфигурация окружения
+├── .gitignore          # Исключения для Git
+├── go.mod              # Зависимости Go
+├── go.sum              # Контрольные суммы зависимостей
+├── main.go             # Точка входа приложения
+└── README.md           # Документация
 ```
 
 ## API Endpoints
@@ -99,5 +101,5 @@ cars_catalog/
 ## Авторы
 
 Елисеев Иван - [GitHub](https://github.com/van-create)
-Скляр Александр - [GitHub](https://github.com/your-username)
+Скляр Александр - [GitHub](https://github.com/Lokichisan)
 Дыбнова Ирина - [GitHub](https://github.com/CrazyCucumber1337)
