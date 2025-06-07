@@ -57,6 +57,10 @@
                                 <input type="text" class="form-control" name="brand">
                             </div>
                             <div class="mb-3">
+                                <label class="form-label">Модель</label>
+                                <input type="text" class="form-control" name="model">
+                            </div>
+                            <div class="mb-3">
                                 <label class="form-label">Цена</label>
                                 <div class="row">
                                     <div class="col">
@@ -75,6 +79,28 @@
                                     </div>
                                     <div class="col">
                                         <input type="number" class="form-control" name="max_year" placeholder="До">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Пробег (км)</label>
+                                <div class="row">
+                                    <div class="col">
+                                        <input type="number" class="form-control" name="min_mileage" placeholder="От">
+                                    </div>
+                                    <div class="col">
+                                        <input type="number" class="form-control" name="max_mileage" placeholder="До">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Объем двигателя (л)</label>
+                                <div class="row">
+                                    <div class="col">
+                                        <input type="number" step="0.1" class="form-control" name="min_engine_size" placeholder="От">
+                                    </div>
+                                    <div class="col">
+                                        <input type="number" step="0.1" class="form-control" name="max_engine_size" placeholder="До">
                                     </div>
                                 </div>
                             </div>
@@ -98,14 +124,34 @@
 
             <!-- Список автомобилей -->
             <div class="col-md-9">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h2>Автомобили</h2>
-                    <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addCarModal">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h2>Список автомобилей</h2>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCarModal">
                         Добавить автомобиль
                     </button>
                 </div>
-                <div id="carsList" class="row g-4">
-                    <!-- Здесь будет список автомобилей -->
+                
+                <!-- Кнопки сортировки -->
+                <div class="btn-group mb-3" role="group">
+                    <button type="button" class="btn btn-outline-secondary sort-btn" data-sort="rating" data-order="desc">
+                        Рейтинг ↓
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary sort-btn" data-sort="price" data-order="asc">
+                        Цена ↑
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary sort-btn" data-sort="year" data-order="asc">
+                        Год ↑
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary sort-btn" data-sort="mileage" data-order="asc">
+                        Пробег ↑
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary sort-btn" data-sort="created_at" data-order="asc">
+                        Дата добавления ↑
+                    </button>
+                </div>
+
+                <div id="carsList" class="row">
+                    <!-- Здесь будут отображаться карточки автомобилей -->
                 </div>
             </div>
         </div>
@@ -389,6 +435,50 @@
             });
         } catch (error) {
             console.error('Error loading transmissions:', error);
+        }
+    }
+
+    // Добавляем обработчики для кнопок сортировки
+    document.querySelectorAll('.sort-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const sortBy = this.dataset.sort;
+            const currentOrder = this.dataset.order;
+            const newOrder = currentOrder === 'asc' ? 'desc' : 'asc';
+            
+            // Обновляем текст кнопки
+            this.textContent = this.textContent.replace(/[↑↓]/, newOrder === 'asc' ? '↑' : '↓');
+            this.dataset.order = newOrder;
+            
+            // Получаем текущие фильтры
+            const formData = new FormData(document.getElementById('filterForm'));
+            const filters = Object.fromEntries(formData.entries());
+            
+            // Добавляем параметры сортировки
+            filters.sort_by = sortBy;
+            filters.sort_order = newOrder;
+            
+            // Загружаем автомобили с новыми параметрами
+            loadCars(filters);
+        });
+    });
+
+    // Обновляем функцию loadCars для поддержки сортировки
+    async function loadCars(filters = {}) {
+        try {
+            const queryParams = new URLSearchParams(filters).toString();
+            const response = await fetch(`/api/cars?${queryParams}`);
+            const cars = await response.json();
+            
+            const carsList = document.getElementById('carsList');
+            carsList.innerHTML = '';
+
+            cars.forEach(car => {
+                const carCard = createCarCard(car);
+                carsList.appendChild(carCard);
+            });
+        } catch (error) {
+            console.error('Ошибка при загрузке автомобилей:', error);
+            alert('Произошла ошибка при загрузке автомобилей');
         }
     }
 
