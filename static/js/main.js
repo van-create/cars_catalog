@@ -19,12 +19,16 @@ async function loadCars(filters = {}) {
 
 function createCarCard(car) {
     const col = document.createElement('div');
-    col.className = 'col-md-4';
+    col.className = 'col-md-4 mb-4';
     
     const carId = car.ID || car.id;
     
     col.innerHTML = `
         <div class="card car-card" style="cursor: pointer;" onclick="showCarDetails(${carId})">
+            ${car.image_url ? 
+                `<img src="${car.image_url}" class="card-img-top" alt="${car.brand} ${car.model}" onerror="this.src='/static/images/no-image.jpg'">` :
+                `<img src="/static/images/no-image.jpg" class="card-img-top" alt="${car.brand} ${car.model}">`
+            }
             <div class="card-body">
                 <h5 class="card-title">${car.brand} ${car.model}</h5>
                 <p class="car-price">${formatPrice(car.price)}</p>
@@ -32,7 +36,7 @@ function createCarCard(car) {
                     <p><i class="bi bi-calendar"></i> ${car.year} год</p>
                     <p><i class="bi bi-speedometer2"></i> ${formatMileage(car.mileage)} км</p>
                     <p><i class="bi bi-gear"></i> ${formatTransmission(car.transmission)}</p>
-                    <p><i class="bi bi-fuel-pump"></i> ${formatFuelType(car.fuel_type)}</p>
+                    <p><i class="bi bi-fuel-pump-fill"></i> ${formatFuelType(car.fuel_type)}</p>
                 </div>
                 <div class="mt-3">
                     <button class="btn btn-sm btn-outline-primary me-2" onclick="event.stopPropagation(); editCar('${carId}')">
@@ -219,6 +223,17 @@ async function showCarDetails(id) {
         modal.querySelector('.car-color').textContent = car.color;
         modal.querySelector('.car-engine-size').textContent = `${car.engine_size} л`;
         modal.querySelector('.car-description').textContent = car.description || 'Описание отсутствует';
+        
+        // Обновляем изображение
+        const carImage = modal.querySelector('.car-image');
+        if (car.image_url) {
+            carImage.src = car.image_url;
+            carImage.onerror = function() {
+                this.src = '/static/images/no-image.jpg';
+            };
+        } else {
+            carImage.src = '/static/images/no-image.jpg';
+        }
         
         const modalInstance = new bootstrap.Modal(modal);
         modalInstance.show();
