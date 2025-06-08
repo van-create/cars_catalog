@@ -16,4 +16,5 @@ type Car struct {
 	Transmission string  `json:"transmission"`
 	FuelType     string  `json:"fuel_type"`
 	Description  string  `json:"description"`
+	ImageURL     string  `json:"image_url"`
 }

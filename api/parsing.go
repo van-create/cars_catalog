@@ -21,14 +21,15 @@ const (
 )
 
 type VehicleListing struct {
-	ID      int     `json:"id"`
-	Make    string  `json:"make"`
-	Model   string  `json:"model"`
-	Year    int     `json:"year"`
-	Price   float64 `json:"priceUnformatted"`
-	Mileage int     `json:"mileageUnformatted"`
-	Color   string  `json:"displayColor"`
-	VIN     string  `json:"vin"`
+	ID       int     `json:"id"`
+	Make     string  `json:"make"`
+	Model    string  `json:"model"`
+	Year     int     `json:"year"`
+	Price    float64 `json:"priceUnformatted"`
+	Mileage  int     `json:"mileageUnformatted"`
+	Color    string  `json:"displayColor"`
+	VIN      string  `json:"vin"`
+	ImageURL string  `json:"primaryPhotoUrl"`
 }
 
 type VinInfo struct {
@@ -158,6 +159,7 @@ func ImportVehiclesToDB() error {
 			Transmission: transmission,
 			FuelType:     fuelType,
 			Description:  fmt.Sprintf("VIN: %s", vehicle.VIN),
+			ImageURL:     vehicle.ImageURL,
 		}
 
 		if err := config.DB.Create(&car).Error; err != nil {
