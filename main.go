@@ -29,6 +29,9 @@ func main() {
 
 	r := gin.Default()
 
+	// Увеличиваем лимит загрузки файлов до 8MB
+	r.MaxMultipartMemory = 8 << 20
+
 	r.Static("/static", "./static")
 	r.LoadHTMLGlob("static/*.html")
 

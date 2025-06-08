@@ -216,6 +216,10 @@
                             <label class="form-label">Описание</label>
                             <textarea class="form-control" name="description" rows="3"></textarea>
                         </div>
+                        <div class="mb-3">
+                            <label class="form-label">Фотография автомобиля</label>
+                            <input type="file" class="form-control" name="image" accept="image/*">
+                        </div>
                     </form>
                 </div>
                 <div class="modal-footer">
@@ -282,6 +286,13 @@
                         <div class="mb-3">
                             <label class="form-label">Описание</label>
                             <textarea class="form-control" name="description" rows="3"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Фотография автомобиля</label>
+                            <input type="file" class="form-control" name="image" accept="image/*">
+                            <div class="mt-2">
+                                <img src="" alt="Текущее фото" class="img-thumbnail current-image" style="max-width: 200px; display: none;">
+                            </div>
                         </div>
                     </form>
                 </div>

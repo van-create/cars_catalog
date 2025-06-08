@@ -1,7 +1,14 @@
 package handlers
 
 import (
+	"fmt"
+	"io"
 	"net/http"
+	"os"
+	"path/filepath"
+	"strconv"
+	"strings"
+	"time"
 
 	"cars_catalog/config"
 	"cars_catalog/models"
@@ -40,7 +47,7 @@ func GetCars(c *gin.Context) {
 	)
 
 	query := config.DB.Model(&models.Car{}).
-		Select("*, ? / (price * (1 + mileage / ?)) as rating", k, m)
+		Select("*, CASE WHEN price > 0 THEN ? / (price * (1 + mileage / ?)) ELSE 0 END as rating", k, m)
 
 	if filter.Brand != "" {
 		query = query.Where("brand ILIKE ?", "%"+filter.Brand+"%")
@@ -124,11 +131,59 @@ func GetCar(c *gin.Context) {
 	c.JSON(http.StatusOK, car)
 }
 
+func uploadImage(c *gin.Context) (string, error) {
+	file, header, err := c.Request.FormFile("image")
+	if err != nil {
+		return "", err
+	}
+	defer file.Close()
+
+	// Создаем директорию для изображений, если она не существует
+	uploadDir := "static/uploads"
+	if err := os.MkdirAll(uploadDir, 0755); err != nil {
+		return "", err
+	}
+
+	// Генерируем уникальное имя файла
+	ext := filepath.Ext(header.Filename)
+	filename := fmt.Sprintf("%d%s", time.Now().UnixNano(), ext)
+	filepath := filepath.Join(uploadDir, filename)
+
+	// Создаем файл
+	out, err := os.Create(filepath)
+	if err != nil {
+		return "", err
+	}
+	defer out.Close()
+
+	// Копируем содержимое загруженного файла
+	_, err = io.Copy(out, file)
+	if err != nil {
+		return "", err
+	}
+
+	// Возвращаем относительный путь к файлу
+	return "/static/uploads/" + filename, nil
+}
+
 func CreateCar(c *gin.Context) {
 	var car models.Car
-	if err := c.ShouldBindJSON(&car); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
+
+	// Получаем данные из формы
+	car.Brand = c.PostForm("brand")
+	car.CarModel = c.PostForm("model")
+	car.Year, _ = strconv.Atoi(c.PostForm("year"))
+	car.Price, _ = strconv.ParseFloat(c.PostForm("price"), 64)
+	car.Mileage, _ = strconv.Atoi(c.PostForm("mileage"))
+	car.Color = c.PostForm("color")
+	car.EngineSize, _ = strconv.ParseFloat(c.PostForm("engine_size"), 64)
+	car.Transmission = c.PostForm("transmission")
+	car.FuelType = c.PostForm("fuel_type")
+	car.Description = c.PostForm("description")
+
+	// Загрузка изображения, если оно есть
+	if imageURL, err := uploadImage(c); err == nil {
+		car.ImageURL = imageURL
 	}
 
 	if err := config.DB.Create(&car).Error; err != nil {
@@ -148,9 +203,26 @@ func UpdateCar(c *gin.Context) {
 		return
 	}
 
-	if err := c.ShouldBindJSON(&car); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
+	// Обновляем данные из формы
+	car.Brand = c.PostForm("brand")
+	car.CarModel = c.PostForm("model")
+	car.Year, _ = strconv.Atoi(c.PostForm("year"))
+	car.Price, _ = strconv.ParseFloat(c.PostForm("price"), 64)
+	car.Mileage, _ = strconv.Atoi(c.PostForm("mileage"))
+	car.Color = c.PostForm("color")
+	car.EngineSize, _ = strconv.ParseFloat(c.PostForm("engine_size"), 64)
+	car.Transmission = c.PostForm("transmission")
+	car.FuelType = c.PostForm("fuel_type")
+	car.Description = c.PostForm("description")
+
+	// Загрузка изображения, если оно есть
+	if imageURL, err := uploadImage(c); err == nil {
+		// Удаляем старое изображение, если оно существует
+		if car.ImageURL != "" && !strings.HasPrefix(car.ImageURL, "http") {
+			oldPath := strings.TrimPrefix(car.ImageURL, "/")
+			os.Remove(oldPath)
+		}
+		car.ImageURL = imageURL
 	}
 
 	if err := config.DB.Save(&car).Error; err != nil {

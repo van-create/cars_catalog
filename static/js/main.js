@@ -20,11 +20,10 @@ async function loadCars(filters = {}) {
 function createCarCard(car) {
     const col = document.createElement('div');
     col.className = 'col-md-4 mb-4';
-    
-    const carId = car.ID || car.id;
+    col.setAttribute('data-car-id', car.ID || car.id);
     
     col.innerHTML = `
-        <div class="card car-card" style="cursor: pointer;" onclick="showCarDetails(${carId})">
+        <div class="card car-card" style="cursor: pointer;" onclick="showCarDetails(${car.ID || car.id})">
             ${car.image_url ? 
                 `<img src="${car.image_url}" class="card-img-top" alt="${car.brand} ${car.model}" onerror="this.src='/static/images/no-image.jpg'">` :
                 `<img src="/static/images/no-image.jpg" class="card-img-top" alt="${car.brand} ${car.model}">`
@@ -39,10 +38,10 @@ function createCarCard(car) {
                     <p><i class="bi bi-fuel-pump-fill"></i> ${formatFuelType(car.fuel_type)}</p>
                 </div>
                 <div class="mt-3">
-                    <button class="btn btn-sm btn-outline-primary me-2" onclick="event.stopPropagation(); editCar('${carId}')">
+                    <button class="btn btn-sm btn-outline-primary me-2" onclick="event.stopPropagation(); editCar('${car.ID || car.id}')">
                         Редактировать
                     </button>
-                    <button class="btn btn-sm btn-outline-danger" onclick="event.stopPropagation(); deleteCar('${carId}')">
+                    <button class="btn btn-sm btn-outline-danger" onclick="event.stopPropagation(); deleteCar('${car.ID || car.id}')">
                         Удалить
                     </button>
                 </div>
@@ -56,32 +55,28 @@ function createCarCard(car) {
 async function addCar() {
     const form = document.getElementById('addCarForm');
     const formData = new FormData(form);
-    const carData = Object.fromEntries(formData.entries());
-    carData.year = Number(carData.year);
-    carData.price = Number(carData.price);
-    carData.mileage = Number(carData.mileage);
-    carData.engine_size = Number(carData.engine_size);
 
     try {
         const response = await fetch('/api/cars', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(carData),
+            body: formData
         });
 
-        if (response.ok) {
-            const modal = bootstrap.Modal.getInstance(document.getElementById('addCarModal'));
-            modal.hide();
-            form.reset();
-            loadCars();
-        } else {
-            throw new Error('Ошибка при добавлении автомобиля');
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || 'Ошибка при добавлении автомобиля');
         }
+
+        const car = await response.json();
+        const carsList = document.getElementById('carsList');
+        carsList.appendChild(createCarCard(car));
+
+        const modal = bootstrap.Modal.getInstance(document.getElementById('addCarModal'));
+        modal.hide();
+        form.reset();
     } catch (error) {
         console.error('Ошибка:', error);
-        alert('Произошла ошибка при добавлении автомобиля');
+        alert(error.message);
     }
 }
 
@@ -92,17 +87,21 @@ async function deleteCar(id) {
 
     try {
         const response = await fetch(`/api/cars/${id}`, {
-            method: 'DELETE',
+            method: 'DELETE'
         });
 
-        if (response.ok) {
-            loadCars();
-        } else {
-            throw new Error('Ошибка при удалении автомобиля');
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || 'Ошибка при удалении автомобиля');
+        }
+
+        const carCard = document.querySelector(`[data-car-id="${id}"]`);
+        if (carCard) {
+            carCard.remove();
         }
     } catch (error) {
         console.error('Ошибка:', error);
-        alert('Произошла ошибка при удалении автомобиля');
+        alert(error.message);
     }
 }
 
@@ -165,6 +164,15 @@ async function editCar(id) {
         form.fuel_type.value = car.fuel_type;
         form.description.value = car.description;
         
+        // Показываем текущее изображение, если оно есть
+        const currentImage = form.querySelector('.current-image');
+        if (car.image_url) {
+            currentImage.src = car.image_url;
+            currentImage.style.display = 'block';
+        } else {
+            currentImage.style.display = 'none';
+        }
+        
         form.dataset.carId = car.ID;
         
         const modal = new bootstrap.Modal(document.getElementById('editCarModal'));
@@ -177,34 +185,33 @@ async function editCar(id) {
 
 async function saveCarChanges() {
     const form = document.getElementById('editCarForm');
-    const carId = form.dataset.carId;
     const formData = new FormData(form);
-    const carData = Object.fromEntries(formData.entries());
-    
-    carData.year = Number(carData.year);
-    carData.price = Number(carData.price);
-    carData.mileage = Number(carData.mileage);
-    carData.engine_size = Number(carData.engine_size);
+    const carId = form.dataset.carId;
 
     try {
         const response = await fetch(`/api/cars/${carId}`, {
             method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(carData),
+            body: formData
         });
 
-        if (response.ok) {
-            const modal = bootstrap.Modal.getInstance(document.getElementById('editCarModal'));
-            modal.hide();
-            loadCars();
-        } else {
-            throw new Error('Ошибка при обновлении автомобиля');
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || 'Ошибка при обновлении автомобиля');
         }
+
+        const updatedCar = await response.json();
+        const carCard = document.querySelector(`[data-car-id="${carId}"]`);
+        if (carCard) {
+            const newCard = createCarCard(updatedCar);
+            carCard.replaceWith(newCard);
+        }
+
+        const modal = bootstrap.Modal.getInstance(document.getElementById('editCarModal'));
+        modal.hide();
+        form.reset();
     } catch (error) {
         console.error('Ошибка:', error);
-        alert('Произошла ошибка при обновлении автомобиля');
+        alert(error.message);
     }
 }
 
