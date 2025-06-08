@@ -30,4 +30,6 @@ cars_catalog
 /bin/
 /pkg/
 *.test
-*.out 
+*.out
+
+static/uploads/
