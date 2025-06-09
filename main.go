@@ -47,6 +47,11 @@ func main() {
 		c.File("static/favorites.html")
 	})
 
+	// Страница сравнения
+	r.GET("/compare.html", func(c *gin.Context) {
+		c.File("static/compare.html")
+	})
+
 	apiGroup := r.Group("/api")
 	{
 		apiGroup.GET("/cars", handlers.GetCars)

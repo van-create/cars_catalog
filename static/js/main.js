@@ -37,16 +37,23 @@ function createCarCard(car) {
                     <p><i class="bi bi-gear"></i> ${formatTransmission(car.transmission)}</p>
                     <p><i class="bi bi-fuel-pump-fill"></i> ${formatFuelType(car.fuel_type)}</p>
                 </div>
-                <div class="mt-3">
-                    <button class="btn btn-sm btn-outline-primary me-2" onclick="event.stopPropagation(); editCar('${car.ID || car.id}')">
-                        Редактировать
-                    </button>
-                    <button class="btn btn-sm btn-outline-danger me-2" onclick="event.stopPropagation(); deleteCar('${car.ID || car.id}')">
-                        Удалить
-                    </button>
-                    <button class="btn btn-sm btn-outline-warning favorite-btn" onclick="event.stopPropagation(); toggleFavorite('${car.ID || car.id}')" data-car-id="${car.ID || car.id}">
-                        <i class="bi bi-heart"></i>
-                    </button>
+                <div class="d-flex justify-content-between align-items-center mt-3">
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-sm btn-outline-primary" onclick="event.stopPropagation(); editCar('${car.ID || car.id}')">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="event.stopPropagation(); deleteCar('${car.ID || car.id}')">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-sm btn-outline-warning favorite-btn me-2" onclick="event.stopPropagation(); toggleFavorite('${car.ID || car.id}')" data-car-id="${car.ID || car.id}">
+                            <i class="bi bi-heart"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-info compare-btn" onclick="event.stopPropagation(); toggleCompare('${car.ID || car.id}')" data-car-id="${car.ID || car.id}">
+                            <i class="bi bi-arrow-left-right"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -332,5 +339,47 @@ async function toggleFavorite(carId) {
     } catch (error) {
         console.error('Ошибка:', error);
         alert(error.message);
+    }
+}
+
+// Функции для сравнения автомобилей
+let compareCars = new Set();
+
+function toggleCompare(carId) {
+    const compareBtn = document.querySelector(`.compare-btn[data-car-id="${carId}"]`);
+    
+    if (compareCars.has(carId)) {
+        compareCars.delete(carId);
+        compareBtn.classList.remove('active');
+        compareBtn.querySelector('i').classList.remove('bi-arrow-left-right-fill');
+        compareBtn.querySelector('i').classList.add('bi-arrow-left-right');
+    } else {
+        if (compareCars.size >= 3) {
+            alert('Можно сравнить не более 3 автомобилей');
+            return;
+        }
+        compareCars.add(carId);
+        compareBtn.classList.add('active');
+        compareBtn.querySelector('i').classList.remove('bi-arrow-left-right');
+        compareBtn.querySelector('i').classList.add('bi-arrow-left-right-fill');
+    }
+    
+    updateCompareButton();
+}
+
+function updateCompareButton() {
+    const compareButton = document.getElementById('compareButton');
+    if (compareCars.size > 0) {
+        compareButton.style.display = 'inline-block';
+        compareButton.innerHTML = `<i class="bi bi-arrow-left-right"></i> Сравнить (${compareCars.size})`;
+    } else {
+        compareButton.style.display = 'none';
+    }
+}
+
+function goToCompare() {
+    if (compareCars.size > 0) {
+        const ids = Array.from(compareCars).join(',');
+        window.location.href = `/compare.html?ids=${ids}`;
     }
 } 
