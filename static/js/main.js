@@ -41,13 +41,19 @@ function createCarCard(car) {
                     <button class="btn btn-sm btn-outline-primary me-2" onclick="event.stopPropagation(); editCar('${car.ID || car.id}')">
                         Редактировать
                     </button>
-                    <button class="btn btn-sm btn-outline-danger" onclick="event.stopPropagation(); deleteCar('${car.ID || car.id}')">
+                    <button class="btn btn-sm btn-outline-danger me-2" onclick="event.stopPropagation(); deleteCar('${car.ID || car.id}')">
                         Удалить
+                    </button>
+                    <button class="btn btn-sm btn-outline-warning favorite-btn" onclick="event.stopPropagation(); toggleFavorite('${car.ID || car.id}')" data-car-id="${car.ID || car.id}">
+                        <i class="bi bi-heart"></i>
                     </button>
                 </div>
             </div>
         </div>
     `;
+    
+    // Проверяем, находится ли автомобиль в избранном
+    checkFavoriteStatus(car.ID || car.id);
     
     return col;
 }
@@ -274,4 +280,57 @@ function loadTransmissions() {
 			});
 		})
 		.catch(error => console.error('Error loading transmissions:', error));
+}
+
+// Проверка статуса избранного
+async function checkFavoriteStatus(carId) {
+    try {
+        const response = await fetch(`/api/favorites/${carId}/check`);
+        const data = await response.json();
+        
+        const favoriteBtn = document.querySelector(`.favorite-btn[data-car-id="${carId}"]`);
+        if (favoriteBtn) {
+            if (data.is_favorite) {
+                favoriteBtn.classList.add('active');
+                favoriteBtn.querySelector('i').classList.remove('bi-heart');
+                favoriteBtn.querySelector('i').classList.add('bi-heart-fill');
+            } else {
+                favoriteBtn.classList.remove('active');
+                favoriteBtn.querySelector('i').classList.remove('bi-heart-fill');
+                favoriteBtn.querySelector('i').classList.add('bi-heart');
+            }
+        }
+    } catch (error) {
+        console.error('Ошибка при проверке статуса избранного:', error);
+    }
+}
+
+// Переключение избранного
+async function toggleFavorite(carId) {
+    try {
+        const favoriteBtn = document.querySelector(`.favorite-btn[data-car-id="${carId}"]`);
+        const isFavorite = favoriteBtn.classList.contains('active');
+        
+        const response = await fetch(`/api/favorites/${carId}`, {
+            method: isFavorite ? 'DELETE' : 'POST'
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || 'Ошибка при обновлении избранного');
+        }
+
+        if (isFavorite) {
+            favoriteBtn.classList.remove('active');
+            favoriteBtn.querySelector('i').classList.remove('bi-heart-fill');
+            favoriteBtn.querySelector('i').classList.add('bi-heart');
+        } else {
+            favoriteBtn.classList.add('active');
+            favoriteBtn.querySelector('i').classList.remove('bi-heart');
+            favoriteBtn.querySelector('i').classList.add('bi-heart-fill');
+        }
+    } catch (error) {
+        console.error('Ошибка:', error);
+        alert(error.message);
+    }
 } 

@@ -67,4 +67,23 @@
 #carDetailsModal .car-description {
     color: #6c757d;
     line-height: 1.6;
+}
+
+.favorite-btn {
+    transition: all 0.3s ease;
+}
+
+.favorite-btn:hover {
+    transform: scale(1.1);
+}
+
+.favorite-btn.active {
+    background-color: #ffc107;
+    border-color: #ffc107;
+    color: #000;
+}
+
+.favorite-btn.active:hover {
+    background-color: #ffca2c;
+    border-color: #ffca2c;
 } 
